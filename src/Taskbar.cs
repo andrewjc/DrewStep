@@ -49,12 +49,10 @@ namespace ConsoleApp
             taskbarGradient.GradientStops.Add(new GradientStop(Colors.LightBlue, 0.0));
             taskbarGradient.GradientStops.Add(new GradientStop(Colors.Blue, 1.0));
 
-
-            // Use a StackPanel or another suitable layout container for taskbar items
             StackPanel panel = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
-                Background = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0)) // Solid non-transparent color
+                Background = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0))
             };
             window.Content = panel;
 
@@ -114,7 +112,6 @@ namespace ConsoleApp
 
                 if (element.Current.ControlType.LocalizedControlType == "window")
                 {
-                    // Add the window to the taskbar
                     AddTaskbarItem(hwnd, element.Current.Name);
                 }
             }
@@ -126,29 +123,27 @@ namespace ConsoleApp
 
         private void AddTaskbarItem(nint hWnd, String windowTitle)
         {
-            // Check if the window is already added to prevent duplicates
             if (!taskbarItems.ContainsKey(hWnd))
             {
-                // Create a button for the taskbar item
                 Button button = new Button
                 {
-                    Content = new StackPanel // Use a StackPanel to hold both the icon and the text
+                    Content = new StackPanel
                     {
                         Orientation = Orientation.Horizontal,
                         Children =
                         {
                             new Image
                             {
-                                Source = GetIcon(hWnd), // Method to retrieve the icon
-                                Width = 16, // Icon width
-                                Height = 16, // Icon height
-                                Margin = new Thickness(2) // Margin around the icon
+                                Source = GetIcon(hWnd),
+                                Width = 16,
+                                Height = 16,
+                                Margin = new Thickness(2)
                             },
                             new TextBlock
                             {
                                 Text = windowTitle,
-                                TextTrimming = TextTrimming.CharacterEllipsis, // Ellipsis if the text is too long
-                                Margin = new Thickness(2) // Margin around the text
+                                TextTrimming = TextTrimming.CharacterEllipsis,
+                                Margin = new Thickness(2) 
                             }
                         }
                     },
@@ -163,20 +158,18 @@ namespace ConsoleApp
                     win32_api.SetForegroundWindow(hwnd);
                 };
 
-                ((StackPanel)button.Content).Width = 200 - 20; // 200px max width - 20px for padding and icon
+                ((StackPanel)button.Content).Width = 200 - 20;
 
                 // Add the button to the taskbar
                 if (window.Content is StackPanel panel)
                 {
                     panel.Children.Add(button);
-                    // Add the window handle to the Hashtable to track it
                     taskbarItems.Add(hWnd, button);
                 }
             }
             else
             {
-                // Optionally, update the existing taskbar item if needed
-                // For example, to update the window title of an existing taskbar item
+                // TODO: Update taskbar item if it exists - eg title change/status etc
             }
         }
 
@@ -184,7 +177,6 @@ namespace ConsoleApp
         {
             try
             {
-                // Extract the icon from the window handle
                 IntPtr hIcon = win32_api.SendMessage(hWnd, WM_GETICON, ICON_SMALL2, 0);
                 if (hIcon == IntPtr.Zero)
                     hIcon = GetClassLongPtr(hWnd, GCL_HICONSM);
@@ -203,12 +195,11 @@ namespace ConsoleApp
             }
             catch (Exception ex)
             {
-                // Handle any exceptions, e.g., log them
+                
             }
-            return null; // Return null if no icon was found or an exception occurred
+            return null;
         }
 
-        // Constants for icons
         private const int ICON_SMALL = 0;
         private const int ICON_BIG = 1;
         private const int ICON_SMALL2 = 2;
@@ -216,9 +207,6 @@ namespace ConsoleApp
         private const int GCL_HICONSM = -34;
         private const int GCL_HICON = -14;
 
-
-
-        // Correct version based on the process architecture
         public static IntPtr GetClassLongPtr(IntPtr hWnd, int nIndex)
         {
             if (IntPtr.Size == 8)
@@ -232,43 +220,40 @@ namespace ConsoleApp
         {
             Style buttonStyle = new Style(typeof(Button));
 
-            // Create the gradient brush for the button background to match the taskbar's color scheme
             LinearGradientBrush buttonBackground = new LinearGradientBrush
             {
                 StartPoint = new Point(0, 0),
                 EndPoint = new Point(0, 1),
                 GradientStops = new GradientStopCollection
                 {
-                    new GradientStop(Color.FromRgb(225, 238, 255), 0.0), // Light blue top
-                    new GradientStop(Color.FromRgb(192, 220, 255), 0.5), // Slightly darker blue in the middle
-                    new GradientStop(Color.FromRgb(10, 73, 158), 1.0)    // Dark blue bottom
+                    new GradientStop(Color.FromRgb(225, 238, 255), 0.0),
+                    new GradientStop(Color.FromRgb(192, 220, 255), 0.5),
+                    new GradientStop(Color.FromRgb(10, 73, 158), 1.0)
                 }
             };
 
-            // Setters for the button style
             buttonStyle.Setters.Add(new Setter(Button.MarginProperty, new Thickness(2)));
             buttonStyle.Setters.Add(new Setter(Button.HeightProperty, 30.0));
-            buttonStyle.Setters.Add(new Setter(Button.ForegroundProperty, Brushes.White)); // White text color
-            buttonStyle.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.Transparent)); // Buttons have a transparent background by default
-            buttonStyle.Setters.Add(new Setter(Button.MaxWidthProperty, 200.0)); // Set the max width of the button
+            buttonStyle.Setters.Add(new Setter(Button.ForegroundProperty, Brushes.White));
+            buttonStyle.Setters.Add(new Setter(Button.BackgroundProperty, Brushes.Transparent));
+            buttonStyle.Setters.Add(new Setter(Button.MaxWidthProperty, 200.0));
 
-            // Create a ControlTemplate for the Button
             ControlTemplate template = new ControlTemplate(typeof(Button));
 
             var border = new FrameworkElementFactory(typeof(Border));
             border.Name = "border";
             border.SetValue(Border.CornerRadiusProperty, new CornerRadius(3));
-            border.SetValue(Border.BackgroundProperty, Brushes.Transparent); // Transparent border background
-            border.SetValue(Border.BorderBrushProperty, Brushes.Transparent); // No border
+            border.SetValue(Border.BackgroundProperty, Brushes.Transparent);
+            border.SetValue(Border.BorderBrushProperty, Brushes.Transparent);
             border.SetValue(Border.BorderThicknessProperty, new Thickness(1));
 
             var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
             contentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
             contentPresenter.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
             contentPresenter.SetValue(ContentPresenter.MarginProperty, new Thickness(4));
-            contentPresenter.SetValue(FrameworkElement.WidthProperty, 200.0); // Bind the width of the ContentPresenter
-            contentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Left); // Align the text to the left
-            contentPresenter.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.WordEllipsis); // Ellipsis at the end if the text is too long
+            contentPresenter.SetValue(FrameworkElement.WidthProperty, 200.0);
+            contentPresenter.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Left);
+            contentPresenter.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.WordEllipsis);
 
             border.AppendChild(contentPresenter);
 
@@ -280,11 +265,10 @@ namespace ConsoleApp
                 Value = true,
                 Setters =
                 {
-                    new Setter(Button.BackgroundProperty, buttonBackground, "border") // Apply background on hover
+                    new Setter(Button.BackgroundProperty, buttonBackground, "border")
                 }
             });
 
-            // Apply the template to the style
             buttonStyle.Setters.Add(new Setter(Button.TemplateProperty, template));
 
             return buttonStyle;
@@ -292,21 +276,18 @@ namespace ConsoleApp
 
         private void MakeTaskbarChildOfDesktop(Window window)
         {
-            // Get the handle of the taskbar window
             WindowInteropHelper helper = new WindowInteropHelper(window);
             IntPtr hwnd = helper.Handle;
 
-            // Find the Program Manager window, which is the desktop's shell window
             IntPtr progman = win32_api.FindWindow("Progman", null);
 
-            // Set the taskbar window as a child of the desktop window
             win32_api.SetParent(hwnd, progman);
         }
 
         public delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
 
-        const uint EVENT_OBJECT_CREATE = 0x8000; // Event constant for object creation
-        const uint WINEVENT_OUTOFCONTEXT = 0; // Listens to events without altering the event flow
+        const uint EVENT_OBJECT_CREATE = 0x8000;
+        const uint WINEVENT_OUTOFCONTEXT = 0;
 
         public void Destroy()
         {
