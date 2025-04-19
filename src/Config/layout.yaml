@@ -1,0 +1,22 @@
+
+panels:
+  - id: weather
+    x: 128
+    y: 200
+    width: 256
+    height: 256
+  - id: stocks
+    x: 432
+    y: 200
+    width: 256
+    height: 256
+  - id: todo
+    x: 736
+    y: 200
+    width: 384
+    height: 256
+  - id: calendar
+    x: 1152
+    y: 200
+    width: 384
+    height: 256

@@ -1,5 +1,0 @@
-blacklisted_classes:
-  - "Windows.UI.Core.CoreWindow"
-blacklisted_titles:
-  - "Microsoft Text Input Application"
-  - "Program Manager"

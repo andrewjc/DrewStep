@@ -1,0 +1,11 @@
+
+<Window x:Class="PerfectShell.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PerfectShell" WindowStyle="None" ResizeMode="NoResize"
+        AllowsTransparency="True" Background="Transparent"
+        Width="1920" Height="1080">
+
+    <!-- Root canvas lets Lua absolutely position panels -->
+    <Canvas x:Name="RootCanvas" Background="Transparent"/>
+</Window>

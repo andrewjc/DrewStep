@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34831.71
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfectShell", "src\PerfectShell\PerfectShell.csproj", "{4E6E7621-9279-4F0E-821D-CCF2D1635C9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfectShell.Core", "src\PerfectShell.Core\PerfectShell.Core.csproj", "{B12D426B-266C-4A12-84C5-9F351C561C73}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4E6E7621-9279-4F0E-821D-CCF2D1635C9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E6E7621-9279-4F0E-821D-CCF2D1635C9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E6E7621-9279-4F0E-821D-CCF2D1635C9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E6E7621-9279-4F0E-821D-CCF2D1635C9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B12D426B-266C-4A12-84C5-9F351C561C73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B12D426B-266C-4A12-84C5-9F351C561C73}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B12D426B-266C-4A12-84C5-9F351C561C73}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B12D426B-266C-4A12-84C5-9F351C561C73}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4A49867D-5A3A-4EE3-8BB5-23CBAC2C0F91}
+	EndGlobalSection
+EndGlobal
