@@ -1,33 +1,130 @@
-
 using System;
-using System.Runtime.InteropServices;
+using System.IO;
 using System.Windows;
-using System.Windows.Interop;
 using PerfectShell.Core;
-using Vanara.PInvoke;
+using MoonSharp.Interpreter;
+using HarfBuzzSharp;
+using MoonSharp.Interpreter.Loaders;
+using Script = MoonSharp.Interpreter.Script;
+using System.Diagnostics;
+using System.Threading;
+using System.Windows.Threading;
 
-namespace PerfectShell;
-
-public partial class MainWindow : Window
+namespace PerfectShell
 {
-    private readonly LuaHost _luaHost;
-
-    public MainWindow()
+    public partial class MainWindow : Window
     {
-        InitializeComponent();
+        private readonly DispatcherTimer _debounce = new() { Interval = TimeSpan.FromMilliseconds(200) };
 
-        // Make window full‑screen and bottom‑most shell window
-        Loaded += (_, __) =>
+        private string _root;
+        private Script? _script;
+        private UiBridge? _bridge;
+        private FileSystemWatcher _watcher;
+
+        public MainWindow()
         {
-            WindowState   = WindowState.Maximized;
-            Topmost       = false;
-            var hwnd      = new WindowInteropHelper(this).Handle;
-            User32.SetWindowPos(hwnd, HWND.HWND_BOTTOM, 0, 0, 0, 0,
-                User32.SetWindowPosFlags.SWP_NOSIZE | User32.SetWindowPosFlags.SWP_NOMOVE);
-        };
+            InitializeComponent();
 
-        // Bridge & Lua
-        var uiBridge = new UiBridge(RootCanvas);
-        _luaHost = new LuaHost(AppDomain.CurrentDomain.BaseDirectory + "Config", uiBridge);
+            LoadVm();
+            StartHotReload();
+            
+        }
+
+
+        private void LoadVm()
+        {
+
+            // 1) create Lua VM + bridge
+            _root = getCurrentBaseDirectory();
+            _bridge = new UiBridge(RootCanvas);
+
+            _script = new Script(CoreModules.Preset_Complete);
+            _bridge.AttachScript(_script);
+
+            // 2) load bootstrap (defines onInitialize)
+            string initPath = Path.Combine(
+                getCurrentBaseDirectory(), "Config/init.lua");
+            var loader = new FileSystemScriptLoader();
+            loader.ModulePaths = new[]
+            {
+                "?/init.lua",
+                "?.lua",
+                "Config/?.lua",
+                "Config/?/init.lua"
+            };
+            _script.Options.ScriptLoader = loader;
+            try
+            {
+                _script.DoFile(initPath);
+                var initFn = _script.Globals.Get("onInitialize");
+                if (!initFn.IsNil()) _script.Call(initFn);
+            }
+            catch (SyntaxErrorException ex)
+            {
+                _bridge.show_lua_error("Lua syntax error", ex);
+            }
+            catch (ScriptRuntimeException ex)
+            {
+                _bridge.show_lua_error("Lua runtime error", ex);
+            }
+        }
+
+        private string getCurrentBaseDirectory()
+        {
+
+            if (Debugger.IsAttached)
+            {
+
+                return "F:\\Development\\DrewStep\\src";
+            } else
+            {
+                String deployedPath = AppDomain.CurrentDomain.BaseDirectory;
+
+                return deployedPath;
+            }
+
+        }
+
+        private void StartHotReload()
+        {
+            _watcher = new FileSystemWatcher(_root, "*.lua")
+            {
+                IncludeSubdirectories = true,
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName
+            };
+            _watcher.Changed += OnLuaFileTouched;
+            _watcher.Renamed += OnLuaFileTouched;
+            _watcher.Created += OnLuaFileTouched;
+
+            _debounce.Tick += (_, __) => { _debounce.Stop(); ReloadVm(); };
+
+            _watcher.EnableRaisingEvents = true;
+        }
+
+        private void OnLuaFileTouched(object? _, FileSystemEventArgs __)
+        {
+            // restart the 200 ms timer each time we get a notification
+            _debounce.Stop();
+            _debounce.Start();
+        }
+
+        private void ReloadVm()
+        {
+            _bridge.DetachScript();   // whatever you need to tear down
+
+            _script = null;
+            _bridge = null;
+
+            // clear the RootCanvas
+            RootCanvas.Children.Clear();
+
+            LoadVm();                 // build a fresh VM
+        }
+
+        public void Dispose()
+        {
+            _watcher?.Dispose();
+        }
     }
+
 }

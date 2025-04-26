@@ -1,56 +1,76 @@
-﻿using MoonSharp.Interpreter;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
+using MoonSharp.Interpreter;
 
 namespace PerfectShell.Core
 {
-    internal class PubSub
+    /// <summary>
+    /// Global broker that survives hot‑reloads of Lua scripts.
+    /// Subscribers are weak‑referenced so old Script instances
+    /// get GC’d naturally when a new init.lua is loaded.
+    /// </summary>
+    internal static class PubSub
     {
-        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<Guid,Sub>> _topics = new();
-
-        private sealed record Sub(WeakReference<Script> ScriptRef, DynValue Fn);
-
-        public static void Publish(string topic, DynValue data)
+        private sealed class Subscriber
         {
-            if (!_topics.TryGetValue(topic, out var subs)) return;
+            public readonly WeakReference<Script> ScriptRef;
+            public readonly DynValue Callback;
 
-            foreach (var (id, sub) in subs)
+            public Subscriber(Script s, DynValue fn)
             {
-                if (sub.ScriptRef.TryGetTarget(out var scr))
+                ScriptRef = new WeakReference<Script>(s);
+                Callback = fn;
+            }
+        }
+
+        private static readonly ConcurrentDictionary<string,
+            List<Subscriber>> _topics = new();
+
+        // --------------- API called from UiBridge -----------------
+
+        public static void Publish(string topic, DynValue payload)
+        {
+            if (!_topics.TryGetValue(topic, out var list)) return;
+
+            lock (list)
+            {
+                for (int i = list.Count - 1; i >= 0; i--)
                 {
-                    scr.Call(sub.Fn, data);
-                }
-                else
-                {
-                    subs.TryRemove(id, out _);
+                    if (!list[i].ScriptRef.TryGetTarget(out var scr))
+                    {
+                        list.RemoveAt(i);                  // dead script
+                        continue;
+                    }
+                    scr.Call(list[i].Callback, payload);   // fire
                 }
             }
         }
 
-        public static Guid Subscribe(string topic, Script script, DynValue fn)
+        public static void Subscribe(Script script, string topic, DynValue fn)
         {
-            if (fn.Type != DataType.Function)
-            {
-                throw new ArgumentException("fn must be a function");
-            }
+            if (!fn.IsNotNil()) return;
 
-            var sub = new Sub(new WeakReference<Script>(script), fn);
-            var set = _topics.GetOrAdd(topic, _ => new ConcurrentDictionary<Guid, Sub>());
-            var id = Guid.NewGuid();
-            set[id] = sub;
-            return id;
+            var list = _topics.GetOrAdd(topic, _ => new List<Subscriber>());
+
+            lock (list)
+            {
+                list.Add(new Subscriber(script, fn));
+            }
         }
 
-        public static void Unsubscribe(string topic, Guid id)
+        internal static void UnsubscribeAll(Script lua)
         {
-            if (_topics.TryGetValue(topic, out var subs))
+            lock(_topics)
             {
-                subs.TryRemove(id, out _);
+                foreach (var list in _topics.Values)
+                {
+                    for (int i = list.Count - 1; i >= 0; i--)
+                    {
+                        if (list[i].ScriptRef.TryGetTarget(out var scr) && scr == lua)
+                            list.RemoveAt(i);
+                    }
+                }
             }
         }
     }

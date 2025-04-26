@@ -1,0 +1,9 @@
+<DrawingImage xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+  <DrawingImage.Drawing>
+    <GeometryDrawing Brush="#FF0A84FF">
+      <GeometryDrawing.Geometry>
+        <EllipseGeometry Center="50,50" RadiusX="50" RadiusY="50"/>
+      </GeometryDrawing.Geometry>
+    </GeometryDrawing>
+  </DrawingImage.Drawing>
+</DrawingImage>

@@ -1,36 +1,50 @@
+-- ─────────────────────────────────────────────────────────────────────────
+--  init.lua  ·  PerfectShell bootstrap
+--  Defines onInitialize() which loads the active theme.
+-- ─────────────────────────────────────────────────────────────────────────
 
--- Lua runs on MoonSharp inside PerfectShell.
--- Everything visual comes via UI.*  (UiBridge.cs exposure)
-print("PerfectShell Lua bootstrap!")
 
--- Read panel specs from YAML already injected into the global `Layout`
-for _, p in ipairs(Layout.panels) do
-  UI:add_panel(
-      p.id,
-      tonumber(p.x),
-      tonumber(p.y),
-      tonumber(p.width),
-      tonumber(p.height))
-end
+-- DSL helpers
+require("ui_dsl")
+require("icon")
 
--- Populate panels ----------------------------------------------------------------
+-- minimal fall‑backs (only if theme hasn't set them later)
+UI.set_ui_default("GridBaseUnit",    10)
+UI.set_ui_default("RadiusDefault",   24)
+UI.set_ui_default("SurfaceARGB",     0xB8FFFFFF)
+UI.set_ui_default("PrimaryARGB",     0xFF3490F7)
+UI.set_ui_default("DefaultFont",     "Segoe UI Variable Display")
+UI.set_ui_default("BlurLow",         25)
+UI.set_ui_default("BlurHigh",        45)
 
-UI:add_text("weather", "Eskişehir", "title")
-UI:add_text("weather", "24°C – Partly sunny", "body")
 
-UI:add_text("stocks", "Watchlist", "title")
-UI:add_text("stocks", "MSFT 241.22 ▲0.46", "caption")
-UI:add_text("stocks", "TSLA 180.19 ▼1.63", "caption")
+-- callback fired from MainWindow after UiBridge is fully attached
+function onInitialize()
+  Wallpaper("Config/walls/win7_blur.svg")
+  ---:blur(UI.get_ui_default("BlurLow"))
+  :build()
+  
 
-UI:add_text("todo", "My Day", "title")
-UI:add_text("todo", "• Send invites for review", "body")
-UI:add_text("todo", "• Buy groceries", "body")
+  Panel("taskbar")
+  :horizontal()
+  :background(0x55000000)
+  :radius(RAD)
+  :size(UI.get_screen().w, 48)
+  :position(0, UI.get_screen().h)
+  :shadow(true)
+  :build()
 
-UI:add_text("calendar", "12 November", "title")
-UI:add_text("calendar", "14:00  Lunch – Selim", "body")
-UI:add_text("calendar", "15:00  Team Presentation", "body")
+  
+  Panel("sidebar")
+  :vertical()
+  :radius(RAD)
+  :size(350, UI.get_screen().h)
+  :position(0, 0)
+  :zorder(-1)
+  :shadow(true)
 
--- Simple animation ‑‑ fade in whole UI
-for _,p in ipairs(Layout["panels"]) do
-  UI:animate_opacity(p["id"], 1.0, 600)
+  :build()
+
+  -- swap file below to change theme
+  --dofile("Config/themes/win7_2025.lua")
 end
